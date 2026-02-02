@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import { Heart, Send, Copy, Check } from "lucide-react";
-import { collection, addDoc, doc, onSnapshot } from "firebase/firestore";
+import { motion } from "framer-motion";
 import { db } from "@/lib/firebase";
+import { collection, addDoc, doc, onSnapshot } from "firebase/firestore";
 
 export default function Home() {
   const [senderName, setSenderName] = useState("");
@@ -13,6 +13,15 @@ export default function Home() {
   const [generatedLink, setGeneratedLink] = useState("");
   const [copied, setCopied] = useState(false);
   const [proposalStatus, setProposalStatus] = useState<{ accepted?: boolean }>({});
+
+  useEffect(() => {
+    const savedLink = localStorage.getItem("valentine_link");
+    const savedId = localStorage.getItem("valentine_id");
+    if (savedLink && savedId) {
+      setGeneratedLink(savedLink);
+      listenToProposal(savedId);
+    }
+  }, []);
 
   // Listen to the document when link is generated
   const listenToProposal = (docId: string) => {
@@ -33,6 +42,15 @@ export default function Home() {
     });
   };
 
+  useEffect(() => {
+    const savedLink = localStorage.getItem("valentine_link");
+    const savedId = localStorage.getItem("valentine_id");
+    if (savedLink && savedId) {
+      setGeneratedLink(savedLink);
+      listenToProposal(savedId);
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!senderName.trim()) return;
@@ -51,6 +69,8 @@ export default function Home() {
       console.log("Document written with ID: ", docRef.id);
       const url = `${window.location.origin}/v/${docRef.id}`;
       setGeneratedLink(url);
+      localStorage.setItem("valentine_link", url);
+      localStorage.setItem("valentine_id", docRef.id);
       listenToProposal(docRef.id);
     } catch (error: any) {
       console.error("Error adding document DETAILS:", error);
